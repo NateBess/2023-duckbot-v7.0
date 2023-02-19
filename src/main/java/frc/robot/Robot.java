@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.DoubleSolenoid.*;
 import edu.wpi.first.wpilibj.shuffleboard.*;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -33,11 +34,11 @@ import frc.robot.subsystems.Tracking;
 
 public class Robot extends TimedRobot {
   // Define objects and variables
-  private Joystick LeftStick;
-  private Joystick RightStick;
-  private Double RightStickX;
-  private Double RightStickY;
-  private Double RightStickTwist;
+  private XboxController ControllerTwo;
+  private XboxController ControllerOne;
+  private Double ControllerOneX;
+  private Double ControllerOneY;
+  private Double ControllerOneTwist;
   private Double[] MotorCurrents;
   private String[] AutoNames;
   private String PrevAuto;
@@ -70,9 +71,10 @@ public class Robot extends TimedRobot {
     // hehe funne number
     SmartDashboard.putData("AutoChooser", AutoChooser);
     
-    // Assign joysticks to the "LeftStick" and "RightStick" objects
-    LeftStick = new Joystick(0);
-    RightStick = new Joystick(1);
+    // Assign joysticks to the "ControllerTwo" and "ControllerOne" objects
+    
+    ControllerOne = new XboxController(0);
+    ControllerTwo = new XboxController(1);
 
     Intake = new CANSparkMax(9, MotorType.kBrushed);
     Indexer = new CANSparkMax(11, MotorType.kBrushless);
@@ -120,27 +122,27 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     // Assign stick inputs to variables, to prevent discrepancies
-    RightStickX = RightStick.getX();
-    RightStickY = RightStick.getY();
-    RightStickTwist = RightStick.getRawAxis(3);
+    ControllerOneX = ControllerOne.getLeftX();
+    ControllerOneY = ControllerOne.getLeftY();
+    ControllerOneTwist = ControllerOne.getRightX();
 
     // Create deadzones on the joysticks, to prevent stick drift
-    if (Math.abs(RightStickX) < 0.1) {
-      RightStickX = 0.0;
+    if (Math.abs(ControllerOneX) < 0.1) {
+      ControllerOneX = 0.0;
     }
-    if (Math.abs(RightStickY) < 0.1) {
-      RightStickY = 0.0;
+    if (Math.abs(ControllerOneY) < 0.1) {
+      ControllerOneY = 0.0;
     }
-    if (Math.abs(RightStickTwist) < 0.2) {
-      RightStickTwist = 0.0;
+    if (Math.abs(ControllerOneTwist) < 0.2) {
+      ControllerOneTwist = 0.0;
     }
 
-    if (RightStick.getRawButton(6)) {
+    if (ControllerOne.getRawButton(6)) {
       Tracking.centerOnCone();
     }
     else {
       // Call swerveDrive() method, to do all the math and outputs for swerve drive
-      SwerveDrive.swerveDrive(RightStickX * 2, (RightStickY * -2), (RightStickTwist * 2.5), (1 - ((RightStick.getZ() + 1) / 2)), (1 - ((LeftStick.getZ() + 1) / 2)));
+      SwerveDrive.swerveDrive(ControllerOneX * 2, (ControllerOneY * -2), (ControllerOneTwist * 2.5), (1 - ((ControllerOne.getLeftTriggerAxis() + 1) / 2)), (1 - ((ControllerOne.getRightTriggerAxis() + 1) / 2)));
       SwerveDrive.setVariablesAndOptimize();
       SwerveDrive.setSwerveOutputs();
     }
@@ -150,23 +152,8 @@ public class Robot extends TimedRobot {
     MotorCurrents = new Double[] {SwerveDrive.FrontLeft.Drive.getOutputCurrent(), SwerveDrive.FrontRight.Drive.getOutputCurrent(), SwerveDrive.BackLeft.Drive.getOutputCurrent(), SwerveDrive.BackRight.Drive.getOutputCurrent()};
     SmartDashboard.putNumberArray("RobotDrive Motors", MotorCurrents);
   
-    if (RightStick.getRawButton(2) == true) {
+    if (ControllerOne.getXButtonPressed()) {
       SwerveDrive.Gyro.reset();
-    }
-    if (RightStick.getRawButton(3)) {
-      Intake.set(1);
-    }
-    else {
-      Intake.set(0);
-    }
-    if (RightStick.getRawButton(5)) {
-      Indexer.set(.15);
-    }
-    else {
-      Indexer.set(0);
-    }
-    if (RightStick.getRawButtonPressed(4)) {
-      Intake1.toggle();
     }
   }
 
