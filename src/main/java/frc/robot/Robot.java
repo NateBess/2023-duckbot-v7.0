@@ -20,6 +20,8 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 import java.io.FileNotFoundException;
 
+import com.ctre.phoenix.motorcontrol.VictorSPXControlMode;
+import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax.ControlType;
@@ -30,12 +32,17 @@ import frc.robot.subsystems.Autonomous;
 import frc.robot.subsystems.SwerveDrive;
 import frc.robot.subsystems.Tracking;
 
+import static edu.wpi.first.wpilibj.DoubleSolenoid.Value.*;
+
 
 
 public class Robot extends TimedRobot {
   // Define objects and variables
   private XboxController ControllerTwo;
   private XboxController ControllerOne;
+
+  private VictorSPX ArmMotor;
+
   private Double ControllerOneX;
   private Double ControllerOneY;
   private Double ControllerOneTwist;
@@ -49,15 +56,17 @@ public class Robot extends TimedRobot {
 
   public NetworkTableInstance Inst;
   public NetworkTable DriverStation;
-  public NetworkTableEntry GyroAng;
+  // public NetworkTableEntry GyroAng;
   public SendableChooser<String> AutoChooser;
 
-  private CANSparkMax Intake;
-  private CANSparkMax Indexer;
-  private SparkMaxPIDController IntakePID;
+  // private CANSparkMax Intake;
+  // private CANSparkMax Indexer;
+  // private SparkMaxPIDController IntakePID;
 
   private Compressor Pump;
-  private DoubleSolenoid Intake1;
+  private DoubleSolenoid Solenoid1;
+  private DoubleSolenoid Solenoid2;
+  private DoubleSolenoid Solenoid3;
 
   @Override
   public void robotInit() {
@@ -76,16 +85,17 @@ public class Robot extends TimedRobot {
     ControllerOne = new XboxController(0);
     ControllerTwo = new XboxController(1);
 
-    Intake = new CANSparkMax(9, MotorType.kBrushed);
-    Indexer = new CANSparkMax(11, MotorType.kBrushless);
+    ArmMotor = new VictorSPX(9);
 
     Pump = new Compressor(0, PneumaticsModuleType.CTREPCM);
-    Intake1 = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
-    Intake1.set(Value.kReverse);
+
+    Solenoid1 = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
+    Solenoid2 = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 2, 3);
+    Solenoid3 = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 4,5);
 
     // Instantiate an object for each class
     SwerveDrive = new SwerveDrive();
-    Tracking = new Tracking(SwerveDrive);
+    // Tracking = new Tracking(SwerveDrive);
     Autonomous = new Autonomous(SwerveDrive, Tracking);
 
     // Call SwerveDrive methods, their descriptions are in the SwerveDrive.java file
@@ -121,6 +131,52 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
+
+    // Pneumatic Controls Here...
+    // Claw open / close if statements.
+    if (ControllerTwo.getLeftBumperPressed()) {
+      Solenoid1.set(kForward);
+    }
+    if (ControllerTwo.getRightBumperPressed()) {
+      Solenoid1.set(kReverse);
+    }
+  
+    // Level 1 & 2 Buttons
+    if (ControllerTwo.getYButtonPressed()) {
+      Solenoid2.set(kForward);
+      Solenoid3.set(kForward);
+      
+    }
+    if (ControllerTwo.getAButtonPressed()) {
+      Solenoid2.set(kReverse);
+      Solenoid3.set(kReverse);
+    }
+
+    if (ControllerTwo.getBButtonPressed()) {
+      Solenoid2.set(kReverse);
+      Solenoid3.set(kForward);
+    }
+
+    if ((ControllerTwo.getRightStickButton())) {
+      // armMotor.set(VictorSPXControlMode.PercentOutput, 1.00);
+      System.out.println(ArmMotor.getMotorOutputPercent()); // prints the percent output of the motor (0.5)
+      System.out.println(ArmMotor.getBusVoltage()); // prints the bus voltage seen by the motor controller
+    }
+  
+      ArmMotor.set(VictorSPXControlMode.PercentOutput, ControllerTwo.getLeftX()*.375);
+
+
+    // Controller One
+    SmartDashboard.putNumber("Left Y Input", ControllerOne.getLeftY());
+    SmartDashboard.putNumber("Right X Input", ControllerOne.getRightX());
+
+    SmartDashboard.putNumber("Front Left Absolute Output", SwerveDrive.FrontLeft.SteerAngRot);
+    SmartDashboard.putNumber("Front Left Absolute Output", SwerveDrive.FrontRight.SteerAngRot);
+    SmartDashboard.putNumber("Front Left Absolute Output", SwerveDrive.BackLeft.SteerAngRot);
+    SmartDashboard.putNumber("Front Left Absolute Output", SwerveDrive.BackRight.SteerAngRot);
+
+
+
     // Assign stick inputs to variables, to prevent discrepancies
     ControllerOneX = ControllerOne.getLeftX();
     ControllerOneY = ControllerOne.getLeftY();
@@ -147,7 +203,7 @@ public class Robot extends TimedRobot {
       SwerveDrive.setSwerveOutputs();
     }
 
-    SmartDashboard.putNumber("Gyro", SwerveDrive.GyroRotation2d.unaryMinus().getDegrees());
+    // SmartDashboard.putNumber("Gyro", SwerveDrive.GyroRotation2d.unaryMinus().getDegrees());
 
     MotorCurrents = new Double[] {SwerveDrive.FrontLeft.Drive.getOutputCurrent(), SwerveDrive.FrontRight.Drive.getOutputCurrent(), SwerveDrive.BackLeft.Drive.getOutputCurrent(), SwerveDrive.BackRight.Drive.getOutputCurrent()};
     SmartDashboard.putNumberArray("RobotDrive Motors", MotorCurrents);

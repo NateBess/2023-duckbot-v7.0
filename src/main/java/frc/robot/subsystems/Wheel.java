@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkMaxRelativeEncoder;
@@ -167,7 +168,6 @@ public class Wheel extends SubsystemBase {
           ModuleState = new SwerveModuleState(ModuleState.speedMetersPerSecond, new Rotation2d(ModuleState.angle.getRadians() + (2 * Math.PI)));
         }
       }
-
     }
     // If the difference between the desired and current positions is greater than 90 degrees, then...
     else {
