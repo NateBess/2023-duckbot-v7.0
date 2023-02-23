@@ -200,6 +200,8 @@ public class SwerveDrive extends SubsystemBase {
     ModulePositions = new SwerveModulePosition[] {FrontRight.getPosition(), FrontLeft.getPosition(), BackLeft.getPosition(), BackRight.getPosition()};
     Odometry.update(GyroRotation2d.unaryMinus(), ModulePositions);
 
+    System.out.println("Output: "+FrontRight.SteerAngRot);
+
     FrontRight.setOutputs(EncoderPosMod);
     FrontLeft.setOutputs(EncoderPosMod);
     BackLeft.setOutputs(EncoderPosMod);
